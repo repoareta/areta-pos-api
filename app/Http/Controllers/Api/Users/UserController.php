@@ -47,7 +47,7 @@ class UserController extends Controller
 
         try {
             $user = $this->users->create($formData);
-            // $user->assignRole($formData['role']);
+            $user->assignRole($formData['role']);
         } catch (\Throwable $th) {
             return response()->json([
                 'message' => $th->getMessage(),
@@ -91,6 +91,17 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        try {
+            $user->delete();
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => $th->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'message' => 'Data pengguna berhasil dihapus.',
+            'status' => true,
+        ], Response::HTTP_OK);
     }
 }

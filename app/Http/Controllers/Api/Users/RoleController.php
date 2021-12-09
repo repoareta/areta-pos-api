@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Users;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RoleStoreRequest;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
@@ -42,10 +43,17 @@ class RoleController extends Controller
     public function store(RoleStoreRequest $request)
     {
         try {
-            //code...
+            $role = $this->roles->create($request->validated());
         } catch (\Throwable $th) {
-            //throw $th;
+            return response()->json([
+                'message' => $th->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+
+        return response()->json([
+            'message' => 'Data pengguna berhasil ditambahkan',
+            'data' => $role,
+        ], Response::HTTP_CREATED);
     }
 
     /**
