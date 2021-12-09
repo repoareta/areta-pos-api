@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\Category\CategoryController;
 use App\Http\Controllers\Api\Product\ProductController;
 use App\Http\Controllers\Api\Supplier\SupplierController;
-use App\Http\Controllers\Api\User\UserListController;
+use App\Http\Controllers\Api\Users\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,8 +23,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         return $request->user();
     });
 
-    Route::get('/user', UserListController::class);
-
     // Product
     Route::apiResource('product', ProductController::class);
 
@@ -33,4 +31,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // Supplier
     Route::apiResource('supplier', SupplierController::class);
+
+    // Users
+    Route::apiResource('users', UserController::class);
 });
