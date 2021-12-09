@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api\Supplier;
+namespace App\Http\Controllers\Api\Price;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SupplierRequest;
-use App\Models\Supplier;
+use App\Http\Requests\SellingPriceRequest;
+use App\Models\SellingPrice;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class SupplierController extends Controller
+class SellingPriceController extends Controller
 {
-    protected $suppliers;
+    protected $sellingPrices;
 
-    public function __construct(Supplier $suppliers)
+    public function __construct(SellingPrice $sellingPrices)
     {
-        $this->suppliers = $suppliers;
+        $this->sellingPrices = $sellingPrices;
     }
     
     /**
@@ -25,13 +25,13 @@ class SupplierController extends Controller
     public function index(Request $request)
     {
         if ($request->has('search')) {
-            $this->suppliers = $this->suppliers->where('name', 'LIKE', '%' . $request->search . '%');
+            $this->sellingPrices = $this->sellingPrices->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'supplier list',
-            'data' => $this->suppliers->paginate($request->length ?? 5)->appends(['search' => $request->search])
+            'message' => 'selling price list',
+            'data' => $this->sellingPrices->paginate($request->length ?? 5)->appends(['search' => $request->search])
         ], Response::HTTP_OK);
     }
 
@@ -41,17 +41,17 @@ class SupplierController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(SupplierRequest $request)
+    public function store(SellingPriceRequest $request)
     {
         try {
-            $this->suppliers->create($request->validated());
+            $this->sellingPrices->create($request->validated());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'suppliers created'
+            'message' => 'selling price created'
         ], Response::HTTP_OK);
     }
 
@@ -64,15 +64,15 @@ class SupplierController extends Controller
     public function show($id)
     {
         try {
-            $suppliers = $this->suppliers->findOrFail($id);
+            $sellingPrices = $this->sellingPrices->findOrFail($id);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'suppliers show',
-            'data' => $suppliers
+            'message' => 'selling price show',
+            'data' => $sellingPrices
         ], Response::HTTP_OK);
     }
 
@@ -83,17 +83,17 @@ class SupplierController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(SupplierRequest $request, $id)
+    public function update(SellingPriceRequest $request, $id)
     {
         try {
-            $this->suppliers->findOrFail($id)->update($request->validated());
+            $this->sellingPrices->findOrFail($id)->update($request->validated());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'suppliers updated',
+            'message' => 'selling price updated',
         ], Response::HTTP_OK);
     }
 
@@ -106,14 +106,14 @@ class SupplierController extends Controller
     public function destroy($id)
     {
         try {
-            $this->supplier->find($id)->delete();
+            $this->sellingPrice->find($id)->delete();
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'supplier deleted'
+            'message' => 'selling price deleted'
         ], Response::HTTP_OK);
     }
 }

@@ -40,10 +40,20 @@ class ProductController extends Controller
     {
         $product->name = $request->name;
         $product->description = $request->description;
-        $product->image = $request->image;
         $product->created_by = $request->created_by;
 
+        if ($request->file('image')) {
+            // upload image
+            $name = $request->file('image')->getClientOriginalName();
+            $dir = $request->file('image')->move('product', $name);
+            
+            $product->image = $name;
+        }
+
         $product->save();
+
+        // attach category
+        $product->category()->attach($request->category);
 
         return response()->json([
             'success' => true,

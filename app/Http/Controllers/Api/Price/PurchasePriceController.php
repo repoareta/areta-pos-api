@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api\Supplier;
+namespace App\Http\Controllers\Api\Price;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SupplierRequest;
-use App\Models\Supplier;
+use App\Http\Requests\PurchasePriceRequest;
+use App\Models\PurchasePrice;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class SupplierController extends Controller
+class PurchasePriceController extends Controller
 {
-    protected $suppliers;
+    protected $purchasePrices;
 
-    public function __construct(Supplier $suppliers)
+    public function __construct(PurchasePrice $purchasePrices)
     {
-        $this->suppliers = $suppliers;
+        $this->purchasePrices = $purchasePrices;
     }
     
     /**
@@ -25,13 +25,13 @@ class SupplierController extends Controller
     public function index(Request $request)
     {
         if ($request->has('search')) {
-            $this->suppliers = $this->suppliers->where('name', 'LIKE', '%' . $request->search . '%');
+            $this->purchasePrices = $this->purchasePrices->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'supplier list',
-            'data' => $this->suppliers->paginate($request->length ?? 5)->appends(['search' => $request->search])
+            'message' => 'purchase price list',
+            'data' => $this->purchasePrices->paginate($request->length ?? 5)->appends(['search' => $request->search])
         ], Response::HTTP_OK);
     }
 
@@ -41,17 +41,17 @@ class SupplierController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(SupplierRequest $request)
+    public function store(PurchasePriceRequest $request)
     {
         try {
-            $this->suppliers->create($request->validated());
+            $this->purchasePrices->create($request->validated());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'suppliers created'
+            'message' => 'purchase price created'
         ], Response::HTTP_OK);
     }
 
@@ -64,15 +64,15 @@ class SupplierController extends Controller
     public function show($id)
     {
         try {
-            $suppliers = $this->suppliers->findOrFail($id);
+            $purchasePrices = $this->purchasePrices->findOrFail($id);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'suppliers show',
-            'data' => $suppliers
+            'message' => 'purchase price show',
+            'data' => $purchasePrices
         ], Response::HTTP_OK);
     }
 
@@ -83,17 +83,17 @@ class SupplierController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(SupplierRequest $request, $id)
+    public function update(PurchasePriceRequest $request, $id)
     {
         try {
-            $this->suppliers->findOrFail($id)->update($request->validated());
+            $this->purchasePrices->findOrFail($id)->update($request->validated());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'suppliers updated',
+            'message' => 'purchase price updated',
         ], Response::HTTP_OK);
     }
 
@@ -106,14 +106,14 @@ class SupplierController extends Controller
     public function destroy($id)
     {
         try {
-            $this->supplier->find($id)->delete();
+            $this->purchasePrice->find($id)->delete();
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'supplier deleted'
+            'message' => 'purchase price deleted'
         ], Response::HTTP_OK);
     }
 }

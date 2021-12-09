@@ -29,7 +29,7 @@ class UserController extends Controller
 
             $this->users = $this->users->with($relations);
         }
-
+      
         if ($request->has('search')) {
             $this->users = $this->users->where('name', 'LIKE', '%' . $request->search . '%')->orWhere('email', 'LIKE', '%' . $request->search . '%');
         }
