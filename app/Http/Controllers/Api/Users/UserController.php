@@ -24,6 +24,12 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        if ($request->has('relations')) {
+            $relations = explode(',', $request->relations);
+
+            $this->users = $this->users->with($relations);
+        }
+
         if ($request->has('search')) {
             $this->users = $this->users->where('name', 'LIKE', '%' . $request->search . '%')->orWhere('email', 'LIKE', '%' . $request->search . '%');
         }
