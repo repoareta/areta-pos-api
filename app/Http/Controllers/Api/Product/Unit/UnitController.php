@@ -16,7 +16,7 @@ class UnitController extends Controller
     {
         $this->units = $units;
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -28,10 +28,18 @@ class UnitController extends Controller
             $this->units = $this->units->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
+        if ($request->has('no_filter')) {
+            $this->units = $this->units->whereDoesntHave('parent');
+        }
+
+        $this->units = !$request->has('no_paginate')
+            ? $this->units->paginate($request->length ?? self::DEFAULT_PAGE_LENGTH)->appends(['search' => $request->search])
+            : $this->units->get();
+
         return response()->json([
             'success' => true,
             'message' => 'unit list',
-            'data' => $this->units->paginate($request->length ?? 5)->appends(['search' => $request->search])
+            'data' => $this->units,
         ], Response::HTTP_OK);
     }
 

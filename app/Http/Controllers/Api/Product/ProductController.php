@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api\Product;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductStoreRequest;
+use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class ProductController extends Controller
 {
@@ -18,7 +21,7 @@ class ProductController extends Controller
         $pageNumber = $request->page ? $request->page : 1 ; // set default
         $pageLength = $request->length ? $request->length : 5 ; // set default
 
-        $products = Product::when(request('search'), function($q) use ($request) {
+        $products = Product::with(['category'])->when(request('search'), function($q) use ($request) {
             $q->where('name', 'LIKE', "%$request->search%");
         })
         ->paginate($pageLength, ['*'], 'page', $pageNumber);
@@ -27,7 +30,7 @@ class ProductController extends Controller
             'success' => true,
             'message' => 'product list',
             'data' => $products
-        ], 200);
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -36,30 +39,32 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, Product $product)
+    public function store(ProductStoreRequest $request, Product $product)
     {
         $product->name = $request->name;
         $product->description = $request->description;
-        $product->created_by = $request->created_by;
+        $product->unit_id = $request->unit_id;
+        $product->initial_stock = $request->initial_stock;
+        $product->created_by = auth()->user()->id;
 
         if ($request->file('image')) {
             // upload image
             $name = $request->file('image')->getClientOriginalName();
             $dir = $request->file('image')->move('product', $name);
-            
+
             $product->image = $name;
         }
 
         $product->save();
 
         // attach category
-        $product->category()->attach($request->category);
+        $product->category()->attach(explode(',', $request->category));
 
         return response()->json([
             'success' => true,
             'message' => 'product created',
             'data' => $product
-        ], 200);
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -68,13 +73,19 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Product $product)
+    public function show(Request $request, Product $product)
     {
+        if ($request->has('relations')) {
+            $relations = explode(',', $request->relations);
+
+            $product = $product->load($relations);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'product show',
             'data' => $product
-        ], 200);
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -84,20 +95,23 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductUpdateRequest $request, Product $product)
     {
         $product->name = $request->name;
         $product->description = $request->description;
-        $product->image = $request->image;
-        $product->created_by = $request->created_by;
+        $product->unit_id = $request->unit_id;
+        $product->initial_stock = $request->initial_stock;
+        $product->created_by = auth()->user()->id;
 
         $product->save();
+
+        $product->category()->sync(is_array($request->category) ? $request->category : explode(',', $request->category));
 
         return response()->json([
             'success' => true,
             'message' => 'product updated',
             'data' => $product
-        ], 200);
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -108,11 +122,12 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $product->category()->detach();
         $product->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'product deleted'
-        ], 200);
+        ], Response::HTTP_OK);
     }
 }

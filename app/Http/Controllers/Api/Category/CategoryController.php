@@ -3,25 +3,47 @@
 namespace App\Http\Controllers\Api\Category;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CategoryStoreRequest;
+use App\Http\Requests\CategoryUpdateRequest;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class CategoryController extends Controller
 {
+    protected $categories;
+
+    public function __construct(Category $categories)
+    {
+        $this->categories = $categories;
+    }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::paginate(10);
+        if ($request->has('relations')) {
+            $relations = explode(',', $request->relations);
+
+            $this->categories = $this->categories->with($relations);
+        }
+
+        if ($request->has('search')) {
+            $this->categories = $this->categories->where('name', 'LIKE', '%' . $request->search . '%')
+                ->orWhereRelation('parent', 'name', 'LIKE', '%' . $request->search . '%');
+        }
+
+        $this->categories = !$request->has('no_paginate')
+            ? $this->categories->paginate($request->length ?? self::DEFAULT_PAGE_LENGTH)->appends(['search' => $request->search])
+            : $this->categories->get();
 
         return response()->json([
             'success' => true,
-            'message' => 'category list',
-            'data' => $categories
-        ], 200);
+            'data' => $this->categories,
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -30,19 +52,19 @@ class CategoryController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, Category $category)
+    public function store(CategoryStoreRequest $request, Category $category)
     {
         $category->name = $request->name;
         $category->parent_id = $request->parent_id;
-        $category->created_by = $request->created_by;
+        $category->created_by = auth()->user()->id;
 
         $category->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'category created',
+            'message' => 'Category created successfully.',
             'data' => $category
-        ], 200);
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -51,9 +73,15 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, Category $category)
     {
-        //
+        if ($request->has('relations')) {
+            $relations = explode(',', $request->relations);
+
+            $category = $category->load($relations);
+        }
+
+        return response()->json($category, Response::HTTP_OK);
     }
 
     /**
@@ -63,11 +91,11 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $category)
+    public function update(CategoryUpdateRequest $request, Category $category)
     {
         $category->name = $request->name;
         $category->parent_id = $request->parent_id;
-        $category->created_by = $request->created_by;
+        $category->created_by = auth()->user()->id;
 
         $category->save();
 
@@ -75,7 +103,7 @@ class CategoryController extends Controller
             'success' => true,
             'message' => 'category updated',
             'data' => $category
-        ], 200);
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -91,6 +119,6 @@ class CategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'category deleted',
-        ], 200);
+        ], Response::HTTP_OK);
     }
 }
