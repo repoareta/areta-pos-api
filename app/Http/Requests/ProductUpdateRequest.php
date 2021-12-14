@@ -33,16 +33,4 @@ class ProductUpdateRequest extends FormRequest
             'image' => ['nullable'],
         ];
     }
-
-    public function attributes()
-    {
-        return [
-            'name' => 'nama produk',
-            'description' => 'deskripsi',
-            'initial_stock' => 'stok awal',
-            'unit_id' => 'unit',
-            'image' => 'gambar produk',
-            'category' => 'kategori',
-        ];
-    }
 }
